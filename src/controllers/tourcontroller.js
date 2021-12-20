@@ -6,18 +6,15 @@ class TourController {
     //Create tour in db
 
     static async createTour(req, res) {
-
+        req.body.user=req.user._id;
         const tour = await TourInfos.create(req.body);
-
         if (!tour) {
             return res.status(404).json({ error: "tour not registred" });
         }
-
         return res
             .status(200)
             .json({ message: "Tour created successfully", data: tour });
     }
-
 
     //get all tours
 

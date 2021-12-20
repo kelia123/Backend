@@ -26,10 +26,18 @@ const tourSchema = new mongoose.Schema(
             type: String,
             required: true,
         },
+        user: {
+            type:mongoose.Schema.ObjectId,
+            ref:"User",
+        }
     },
     {
         timestamps: true,
     }
 );
+tourSchema.pre(/^find/,function (next){
+    this.populate({path:"user", select: "lastName email address"});
+    next();
+})
 const tour = mongoose.model('Tour', tourSchema);
 export default tour;
