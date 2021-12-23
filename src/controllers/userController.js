@@ -1,6 +1,8 @@
 import UserInfos from "../models/user";
 import bcrypt from "bcrypt";
 import TokenAuth from "../helpers/tokenAuth";
+import BookInfos from "../models/book"
+import TourInfos from "../models/tour"
 
 class UserController {
 
@@ -74,5 +76,60 @@ class UserController {
 
         return res.status(400).json({error: "Password is wrong"});
     }
+    // Booking functions
+
+    static async bookTour (req,res){
+        const bookData={
+            user: req.user._id,
+            tour:req.params.id
+        };
+        const book = await BookInfos.create(bookData);
+
+        const tour = await TourInfos.findById(req.params.id);
+        const tourSeats = tour.seats-1;
+        await TourInfos.findByIdAndUpdate(req.params.id,{seats: tourSeats});
+
+        if (!book) {
+            return res.status(404).json({error: "Failed to book"});
+        }
+
+        return res.status(200).json({message: "Booked successfully", data: book})
+    }
+
+    // Get all bookings 
+
+    static async getAllBooks(req, res) {
+        const book = await BookInfos.find();
+        if (!book) {
+            return res.status(404).json({ error: "Bookings not successfully retrieved" });
+        }
+        return res
+            .status(200)
+            .json({ message: "Successfully retrieved bookings", data: book});
+    }
+
+    static async getAllBookingsByTourId(req,res) {
+        const books = await BookInfos.find({tour:req.params.idtour});
+
+        if (!books){
+            return res.status(404).json({error: "not found"});
+        }
+        return res
+        .status(200)
+        .json({ message: "Found successfully ", data: books});
+    }
+
+    static async getAllBookingsByUserId(req,res) {
+        const books = await BookInfos.find();
+
+        if (!books){
+            return res.status(404).json({error: "book not found"});
+        }
+        return res
+        .status(200)
+        .json({ message: "Found successfully ", data: books});
+
+    }
+    
 }
 export default UserController;

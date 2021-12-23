@@ -1,20 +1,41 @@
 import TokenAuth from "../helpers/tokenAuth";
-const verifyToken = async(req,res,next) => {
-    const token = req.header("x-auth-token");
-    // x-auth-token is a variable that will hold our token in header of request in postman
-    if(!token){
-        return res.status(404).json({
-            status:404,
-            message:"no token provided"
-        })
-    }
-    try{
-        const user = TokenAuth.getDataFromToken(token);
-        
-        req.user = user.user;
+import userInfos from "../models/user"
+const isUserExist = async (req, res, next) => {
+    try {
+        const token = req.header("x-auth-token");
+        if (!token) {
+            return res.status(400).json({ error: "no token provided" })
+        }
+        const data = TokenAuth.getDataFromToken(token)
+        const { name } = data
+        if (name === "JsonWebTokenError") {
+            return res.status(400).json({ error: "Invalid JWT token" })
+        }
+        if (name === "TokenExpiredError") {
+            return res.status(400).json({ error: "Token is expired" })
+        }
+
+        req.user = data.user;
+        const user = await userInfos.findById(req.user._id);
+
+        if (!user) {
+            return res.status(404).json({ error: "User not found, you are not authorized" })
+        }
+
         return next();
-    }catch(err){
-        console.log("<><><><><><>",err);
     }
+    catch (err) {
+        console.log(err);
     }
-    export default verifyToken;
+}
+export default isUserExist;
+
+
+
+
+
+
+
+
+
+
